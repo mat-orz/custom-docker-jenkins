@@ -1,0 +1,47 @@
+version: '3.4'
+
+services:
+  jenkins:
+    image: matorz/jenkins_custom:latest
+    secrets:
+      - DOCKER_LOGIN
+      - DOCKER_PASSWORD
+      - DOCKER_STORE_IMG
+    entrypoint: ["/usr/local/bin/wrapper.sh"]
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+      placement:
+        constraints:
+          - node.hostname == devops2
+
+    volumes:
+      - /devops/jenkins/jenkins_data:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /usr/bin/docker:/bin/docker
+    ports:
+      - 81:8080
+      - 50003:50002
+    configs:
+      - source: jinit
+        target: /usr/local/bin/jenkins-init.sh
+        mode: 0777
+      - source: wrapper
+        target: /usr/local/bin/wrapper.sh
+        mode: 0777
+
+
+secrets:
+  DOCKER_LOGIN:
+    external: true
+  DOCKER_PASSWORD:
+    external: true
+  DOCKER_STORE_IMG:
+    external: true
+
+configs:
+   jinit:
+     file: ./jenkins-init.sh
+   wrapper:
+     file: ./wrapper.sh

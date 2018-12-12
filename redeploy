@@ -1,0 +1,35 @@
+#!/bin/bash
+#set -x
+WORKDIR=/devops/jenkins
+JENKINS_DATA=$WORKDIR/jenkins_data
+JENKINS_BACKUP=$WORKDIR/jenkins_backup
+if [ ! -d "$JENKINS_DATA" ]; then
+  echo "Creating $JENKINS_DATA"
+  mkdir $JENKINS_DATA
+else
+  echo "Directory $JENKINS_DATA exists already"
+fi
+
+if [ ! -d "$JENKINS_BACKUP" ]; then
+  echo "Creating $JENKINS_BACKUP"
+  mkdir $JENKINS_BACKUP
+else
+  echo "Directory $JENKINS_BACKUP exists already"
+fi
+
+chmod 777 /var/run/docker.sock
+docker stack rm j_stack
+
+docker secret rm DOCKER_LOGIN DOCKER_PASSWORD DOCKER_STORE_IMG
+echo $DOCKER_LOGIN | docker secret create DOCKER_LOGIN -
+echo $DOCKER_PWD | docker secret create DOCKER_PASSWORD -
+echo $DOCKER_STORE_IMG | docker secret create DOCKER_STORE_IMG -
+sleep 15
+pwd
+
+docker stack deploy -c docker-compose.yml j_stack
+sleep 15
+x=$(docker service ps -q j_stack_jenkins | head -1)
+contid=$(docker inspect --format '{{.Status.ContainerStatus.ContainerID}}' $x)
+docker cp $JENKINS_BACKUP/jenkins_backup/. $contid:/var/jenkins_home/.
+docker exec -it $contid touch /tmp/jenkinsready
