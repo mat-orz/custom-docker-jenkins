@@ -1,5 +1,5 @@
 #!/bin/bash
-file="/tmp/jenkinsready"
+file="/jenkinsready"
 
 while true
 do

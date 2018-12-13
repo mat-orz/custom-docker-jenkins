@@ -32,4 +32,4 @@ sleep 15
 x=$(docker service ps -q j_stack_jenkins | head -1)
 contid=$(docker inspect --format '{{.Status.ContainerStatus.ContainerID}}' $x)
 docker cp $JENKINS_BACKUP/jenkins_backup/. $contid:/var/jenkins_home/.
-docker exec -it $contid touch /tmp/jenkinsready
+docker exec -it $contid touch /jenkinsready
